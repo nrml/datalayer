@@ -56,7 +56,7 @@ func Test_CreateTable(t *testing.T) {
 
 }
 
-func Test_TableCreateGet(t *testing.T) {
+func Test_TableCreateGetUpdate(t *testing.T) {
 	db := DB{":memory:", nil}
 	db.Init()
 
@@ -94,6 +94,50 @@ func Test_TableCreateGet(t *testing.T) {
 	} else {
 		t.Log("object got with name: " + obj2.Name)
 		fmt.Println("object got with name: " + obj2.Name)
+	}
+
+	obj2.Name = "Object Name Updated"
+
+	err = tbl.Update(obj2.ID, obj2.Name, obj2.Value)
+
+	if err != nil {
+		t.Error("error updating table object... " + err.Error())
+		return
+	} else {
+		t.Log("object updated: " + obj2.Name)
+		fmt.Println("object updated wth name : " + obj2.Name)
+	}
+
+	var obj3 = new(TestTableObject)
+
+	err = tbl.Get(obj2.ID, &obj3.ID, &obj3.Name, &obj3.Value)
+
+	if err != nil {
+		t.Error("error getting table object after update... " + err.Error())
+	} else {
+		t.Log("updated object got with name: " + obj3.Name)
+		fmt.Println("updated object got with name: " + obj3.Name)
+	}
+
+	err = tbl.Delete(obj3.ID)
+
+	if err != nil {
+		t.Error("error deleting... " + err.Error())
+	} else {
+		t.Log("obj deleted with id: " + strconv.FormatInt(obj3.ID, 10))
+		fmt.Println("object deleted with id: " + strconv.FormatInt(obj3.ID, 10))
+	}
+
+	var obj4 = new(TestTableObject)
+
+	err = tbl.Get(obj3.ID, &obj4.ID, &obj4.Name, &obj4.Value)
+
+	if err != nil {
+		t.Log("confirmed delete")
+		fmt.Println("confirmed delete")
+	} else {
+		t.Error("object did not delete with name " + obj4.Name)
+		fmt.Println("object did not delete with name: " + obj4.Name)
 	}
 
 }

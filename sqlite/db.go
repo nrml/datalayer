@@ -25,8 +25,6 @@ func (db *DB) Init() error {
 
 	if db == nil {
 		log.Fatal("database cannot be initialized")
-	} else {
-		fmt.Println("database initialized")
 	}
 
 	return err
@@ -47,7 +45,6 @@ func (db *DB) CreateTable(tbl Table) error {
 
 	stmt := fmt.Sprintf("create table %s (%s)", tbl.Name, strings.Join(flds, ","))
 
-	fmt.Println(stmt)
 	_, err := db.db.Exec(stmt)
 
 	return err
