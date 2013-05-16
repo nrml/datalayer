@@ -9,7 +9,7 @@ import (
 type Table struct {
 	Name   string
 	Fields []Field
-	DB     DB
+	DB     *DB
 }
 
 // type Stringer interface {

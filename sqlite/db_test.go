@@ -6,16 +6,10 @@ import (
 	"testing"
 )
 
-var fields = []Field{
-	{"id", "integer not null primary key autoincrement"},
-	{"name", "text"},
-	{"value", "text"},
-}
-
-type TestTableObject struct {
-	ID    int64
-	Name  string
-	Value string
+type TestObject struct {
+	ID    int64  `json:"id" sql:"id integer not null primary key autoincrement"`
+	Name  string `json:"name"  sql:"name text"`
+	Value string `json:"value" sql:"value text"`
 	_     TableObj
 }
 
@@ -33,21 +27,7 @@ func Test_CreateTable(t *testing.T) {
 	db := DB{":memory:", nil}
 	db.Init()
 
-	tbl := Table{
-		"TestTable",
-		fields,
-		db,
-	}
-
-	if tbl.DB.Namespace != ":memory:" {
-		t.Error("table namespace is incorrect")
-		fmt.Println("table namespace error")
-	} else {
-		t.Log("table namespce is correct")
-		fmt.Println("table namespace correct")
-	}
-
-	err := db.CreateTable(tbl)
+	_, err := db.CreateTable("TestTable", TestObject{})
 
 	if err != nil {
 		t.Error("error creating table... " + err.Error())
@@ -61,15 +41,9 @@ func Test_TableCreateGetUpdate(t *testing.T) {
 	db := DB{":memory:", nil}
 	db.Init()
 
-	tbl := Table{
-		"TestTable",
-		fields,
-		db,
-	}
+	tbl, err := db.CreateTable("TestTable", TestObject{})
 
-	_ = db.CreateTable(tbl)
-
-	obj := TestTableObject{1, "Object Name", "Object Title", TableObj{}}
+	obj := TestObject{1, "Object Name", "Object Title", TableObj{}}
 
 	values := []string{"null", obj.Name, obj.Value}
 
@@ -86,7 +60,7 @@ func Test_TableCreateGetUpdate(t *testing.T) {
 
 	obj.ID = id
 
-	obj2 := new(TestTableObject)
+	obj2 := new(TestObject)
 
 	fmt.Println("attempting to fill " + strconv.FormatInt(obj.ID, 10))
 	err = tbl.Fill(id, obj2)
@@ -112,7 +86,7 @@ func Test_TableCreateGetUpdate(t *testing.T) {
 		fmt.Println("object updated wth name : " + obj2.Name)
 	}
 
-	var obj3 = new(TestTableObject)
+	var obj3 = new(TestObject)
 
 	err = tbl.Get(obj2.ID, &obj3.ID, &obj3.Name, &obj3.Value)
 
@@ -132,7 +106,7 @@ func Test_TableCreateGetUpdate(t *testing.T) {
 		fmt.Println("object deleted with id: " + strconv.FormatInt(obj3.ID, 10))
 	}
 
-	var obj4 = new(TestTableObject)
+	var obj4 = new(TestObject)
 
 	err = tbl.Get(obj3.ID, &obj4.ID, &obj4.Name, &obj4.Value)
 
