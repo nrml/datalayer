@@ -16,6 +16,7 @@ type TestTableObject struct {
 	ID    int64
 	Name  string
 	Value string
+	_     TableObj
 }
 
 func Test_InitDB(t *testing.T) {
@@ -68,7 +69,7 @@ func Test_TableCreateGetUpdate(t *testing.T) {
 
 	_ = db.CreateTable(tbl)
 
-	obj := TestTableObject{1, "Object Name", "Object Title"}
+	obj := TestTableObject{1, "Object Name", "Object Title", TableObj{}}
 
 	values := []string{"null", obj.Name, obj.Value}
 
@@ -85,9 +86,12 @@ func Test_TableCreateGetUpdate(t *testing.T) {
 
 	obj.ID = id
 
-	var obj2 = new(TestTableObject)
+	obj2 := new(TestTableObject)
 
-	err = tbl.Get(obj.ID, &obj2.ID, &obj2.Name, &obj2.Value)
+	fmt.Println("attempting to fill " + strconv.FormatInt(obj.ID, 10))
+	err = tbl.Fill(id, obj2)
+	fmt.Printf("made it past fill with object: %d-%s-%s\n", obj2.ID, obj2.Name, obj2.Value)
+	//err = tbl.Get(obj.ID, &obj2.ID, &obj2.Name, &obj2.Value)
 
 	if err != nil {
 		t.Error("error getting table object... " + err.Error())

@@ -12,9 +12,9 @@ type Table struct {
 	DB     DB
 }
 
-type Stringer interface {
-	String() string
-}
+// type Stringer interface {
+// 	String() string
+// }
 
 func (t *Table) fieldNames() []string {
 	keys := make([]string, len(t.Fields))
@@ -38,6 +38,23 @@ func (tbl *Table) Get(id int64, values ...interface{}) error {
 
 	err = stmt.QueryRow(&id).Scan(values...)
 
+	return err
+}
+
+func (tbl *Table) Fill(id int64, obj interface{}) error {
+	statement := "select " + strings.Join(tbl.fieldNames(), ",") + " from " + tbl.Name + " where id = ?"
+
+	stmt, err := tbl.DB.db.Prepare(statement)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+
+	//err = stmt.QueryRow(&id).Scan(values...)
+	rows, err := stmt.Query(&id)
+	//obj.Fill(row, obj)
+	tbl.fill(rows, obj)
 	return err
 }
 
