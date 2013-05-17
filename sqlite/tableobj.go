@@ -13,26 +13,24 @@ type Fillable interface {
 type TableObj struct {
 }
 
-func (to *Table) fill(rows *sql.Rows, obj interface{}) {
-	elem := reflect.ValueOf(obj).Elem()
-	//length := elem.NumField() - 1
+func (to *Table) fill(rows *sql.Rows) []interface{} {
 
 	columns, err := rows.Columns()
 
-	// Make a slice for the values
 	values := make([]interface{}, len(columns))
 
-	// rows.Scan wants '[]interface{}' as an argument, so we must copy the
-	// references into such a slice
-	// See http://code.google.com/p/go-wiki/wiki/InterfaceSlice for details
 	scanArgs := make([]interface{}, len(values))
+
 	for i := range values {
 		scanArgs[i] = &values[i]
 	}
 
 	// Fetch rows
+	results := make([]interface{}, 0)
+	idx := 0
 	for rows.Next() {
-		// get RawBytes from data
+		elem := reflect.New(to.Type).Elem()
+
 		err = rows.Scan(scanArgs...)
 		if err != nil {
 			panic(err.Error())
@@ -45,13 +43,36 @@ func (to *Table) fill(rows *sql.Rows, obj interface{}) {
 			if col == nil {
 				//TODO () handle nulls
 			} else {
-				to.setVal(elem.Field(i), col)
+				f := elem.Field(i)
+				fmt.Printf("trying to set: %v with %v\n", to.Type.Field(i).Name, col)
+				to.setVal(&f, col)
 			}
+
 		}
-		fmt.Println("-----------------------------------")
+		fmt.Println("checking grow")
+		if idx > len(results)-1 {
+			//fmt.Printf("growing results with: %v\n", elem.Interface())
+			fmt.Println("growing")
+			results = to.growResult(results, elem.Interface())
+		}
+		idx++
 	}
+	return results
 }
-func (to *Table) setVal(field reflect.Value, val interface{}) {
+func (to *Table) growResult(results []interface{}, obj interface{}) []interface{} {
+	length := len(results)
+
+	more := make([]interface{}, length+1)
+
+	for i := range results {
+		more[i] = results[i]
+	}
+	more[length] = obj
+
+	return more
+
+}
+func (to *Table) setVal(field *reflect.Value, val interface{}) {
 	str, ok := val.(string)
 	if ok {
 		field.SetString(str)

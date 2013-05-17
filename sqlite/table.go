@@ -9,6 +9,7 @@ import (
 
 type Table struct {
 	Name   string
+	Type   reflect.Type
 	Fields []Field
 	DB     *DB
 }
@@ -27,58 +28,72 @@ func (t *Table) fieldNames() []string {
 	return keys
 }
 
-func (tbl *Table) Get(id int64, values ...interface{}) error {
+// func (tbl *Table) Get(id int64, values ...interface{}) error {
+// 	statement := "select " + strings.Join(tbl.fieldNames(), ",") + " from " + tbl.Name + " where id = ?"
+
+// 	stmt, err := tbl.DB.db.Prepare(statement)
+
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	err = stmt.QueryRow(&id).Scan(values...)
+
+// 	return err
+// }
+
+func (tbl *Table) Get(id int64) (interface{}, error) {
 	statement := "select " + strings.Join(tbl.fieldNames(), ",") + " from " + tbl.Name + " where id = ?"
 
 	stmt, err := tbl.DB.db.Prepare(statement)
 
 	if err != nil {
-		fmt.Println(err.Error())
-		return err
+		return nil, err
 	}
 
-	err = stmt.QueryRow(&id).Scan(values...)
+	rows, err := stmt.Query(&id)
 
-	return err
+	filled := tbl.fill(rows)
+
+	if len(filled) > 0 {
+		obj := filled[0]
+		return obj, err
+	}
+
+	return nil, err
 }
 
-func (tbl *Table) Fill(id int64, obj interface{}) error {
-	statement := "select " + strings.Join(tbl.fieldNames(), ",") + " from " + tbl.Name + " where id = ?"
+func (tbl *Table) List() ([]interface{}, error) {
+	statement := "select " + strings.Join(tbl.fieldNames(), ",") + " from " + tbl.Name
 
 	stmt, err := tbl.DB.db.Prepare(statement)
 
 	if err != nil {
-		fmt.Println(err.Error())
-		return err
+		return nil, err
 	}
 
-	//err = stmt.QueryRow(&id).Scan(values...)
-	rows, err := stmt.Query(&id)
-	//obj.Fill(row, obj)
-	tbl.fill(rows, obj)
-	return err
+	rows, err := stmt.Query()
+
+	filled := tbl.fill(rows)
+
+	return filled, err
 }
 
 func (tbl *Table) Create(obj interface{}) (int64, error) {
 	elem := reflect.ValueOf(obj)
 	length := elem.NumField() - 2
 
-	fmt.Printf("fields count: %v\n", length)
-
 	keys := make([]string, length)
 	vals := make([]string, length)
+	values := make([]interface{}, length)
 
 	for i := 1; i < length+1; i++ {
 		f := tbl.Fields[i]
 		keys[i-1] = f.Name
-		if f.Type == "text" {
-			vals[i-1] = strings.Join([]string{"'", elem.Field(i).String(), "'"}, "")
-		} else {
-			it, ok := elem.Field(i).Interface().(int64)
-			if ok {
-				vals[i-1] = strconv.FormatInt(it, 10)
-			}
-		}
+		vals[i-1] = "?"
+		face := elem.Field(i).Interface()
+		fmt.Printf("adding field value: %v\n", face)
+		values[i-1] = face
 	}
 
 	statement := "insert into " + tbl.Name + "(" + strings.Join(keys, ",") + ") values(" + strings.Join(vals, ",") + ")"
@@ -86,57 +101,44 @@ func (tbl *Table) Create(obj interface{}) (int64, error) {
 	tx, err := tbl.DB.db.Begin()
 
 	if err != nil {
-		fmt.Println(err)
 		return -1, err
 	}
 	stmt, err := tx.Prepare(statement)
 	if err != nil {
-		fmt.Println(err)
 		return -1, err
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec()
+	res, err := stmt.Exec(values...)
 
 	id, _ := res.LastInsertId()
-
-	if err != nil {
-		return -1, err
-	}
 
 	tx.Commit()
 
 	return id, err
 
 }
-func (tbl *Table) Update(id int64, values ...interface{}) error {
+func (tbl *Table) Update(id int64, obj interface{}) error {
 
-	//TODO concurrency
+	elem := reflect.ValueOf(obj)
+	length := len(tbl.Fields)
+	// //TODO concurrency
+	matches := make([]string, length-1)
+	values := make([]interface{}, length-1)
 
-	matches := make([]string, len(values))
-	i := 0
-
-	for _, _ = range values {
-		//skip id field
-		f := tbl.Fields[i+1]
-		sval := "?"
-
-		if f.Type == "string" {
-			sval = "'?'"
-		}
-		matches[i] = fmt.Sprintf("%s=%s", f.Name, sval)
-		i++
+	//skip id field
+	for i := 1; i < length; i++ {
+		f := tbl.Fields[i]
+		values[i-1] = elem.Field(i).Interface()
+		matches[i-1] = fmt.Sprintf("%s=?", f.Name)
 	}
 
 	statement := fmt.Sprintf("update %s set %s where id=%s", tbl.Name, strings.Join(matches, ","), strconv.FormatInt(id, 10))
-
-	fmt.Println(statement)
 
 	tx, err := tbl.DB.db.Begin()
 
 	stmt, err := tx.Prepare(statement)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	defer stmt.Close()
@@ -146,7 +148,6 @@ func (tbl *Table) Update(id int64, values ...interface{}) error {
 	tx.Commit()
 
 	return err
-
 }
 
 func (tbl *Table) Delete(id int64) error {
@@ -157,7 +158,6 @@ func (tbl *Table) Delete(id int64) error {
 	}
 	stmt, err := tx.Prepare("delete from " + tbl.Name + " where id=?")
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	defer stmt.Close()

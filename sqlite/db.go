@@ -35,8 +35,8 @@ func (db *DB) Close() {
 	db.db.Close()
 }
 
-func (db *DB) CreateTable(name string, tbl interface{}) (Table, error) {
-	elem := reflect.TypeOf(tbl)
+func (db *DB) CreateTable(name string, tblType interface{}) (Table, error) {
+	elem := reflect.TypeOf(tblType)
 
 	//HACK: don't count last prop reflected on as it is tableObj
 	length := elem.NumField() - 1
@@ -58,6 +58,6 @@ func (db *DB) CreateTable(name string, tbl interface{}) (Table, error) {
 
 	_, err := db.db.Exec(stmt)
 
-	return Table{name, fields, db}, err
+	return Table{name, reflect.TypeOf(tblType), fields, db}, err
 
 }
