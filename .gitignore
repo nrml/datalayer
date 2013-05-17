@@ -3,6 +3,8 @@
 .LSOverride
 Icon
 
+#test db
+locahost.test
 
 # Thumbnails
 ._*
