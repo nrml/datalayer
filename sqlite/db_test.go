@@ -10,7 +10,7 @@ type TestObject struct {
 	ID    int64  `json:"id" sql:"id integer not null primary key autoincrement"`
 	Name  string `json:"name"  sql:"name text"`
 	Value string `json:"value" sql:"value text"`
-	_     TableObj
+	//_     TableObj
 }
 
 func Test_InitDB(t *testing.T) {
