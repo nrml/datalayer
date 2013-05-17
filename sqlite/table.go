@@ -26,8 +26,10 @@ func (t *Table) fieldNames() []string {
 }
 func (tbl *Table) Search(search string) ([]interface{}, error) {
 	statement := "select " + strings.Join(tbl.fieldNames(), ",") + " from " + tbl.Name + " where " + search
-
+	
 	stmt, err := tbl.DB.db.Prepare(statement)
+
+	//fmt.Println(statement)
 
 	if err != nil {
 		return nil, err
