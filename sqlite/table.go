@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -58,26 +59,30 @@ func (tbl *Table) Fill(id int64, obj interface{}) error {
 	return err
 }
 
-func (tbl *Table) Create(values []string) (int64, error) {
-	cnt := len(tbl.Fields)
+func (tbl *Table) Create(obj interface{}) (int64, error) {
+	elem := reflect.ValueOf(obj)
+	length := elem.NumField() - 2
 
-	keys := make([]string, cnt)
-	vals := make([]string, cnt)
+	fmt.Printf("fields count: %v\n", length)
 
-	i := 0
-	for _, _ = range tbl.Fields {
+	keys := make([]string, length)
+	vals := make([]string, length)
+
+	for i := 1; i < length+1; i++ {
 		f := tbl.Fields[i]
-		keys[i] = f.Name
+		keys[i-1] = f.Name
 		if f.Type == "text" {
-			vals[i] = strings.Join([]string{"'", values[i], "'"}, "")
+			vals[i-1] = strings.Join([]string{"'", elem.Field(i).String(), "'"}, "")
 		} else {
-			vals[i] = values[i]
+			it, ok := elem.Field(i).Interface().(int64)
+			if ok {
+				vals[i-1] = strconv.FormatInt(it, 10)
+			}
 		}
-		i++
 	}
 
 	statement := "insert into " + tbl.Name + "(" + strings.Join(keys, ",") + ") values(" + strings.Join(vals, ",") + ")"
-
+	fmt.Println(statement)
 	tx, err := tbl.DB.db.Begin()
 
 	if err != nil {

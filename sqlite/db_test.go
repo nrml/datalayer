@@ -43,13 +43,11 @@ func Test_TableCreateGetUpdate(t *testing.T) {
 
 	tbl, err := db.CreateTable("TestTable", TestObject{})
 
-	obj := TestObject{1, "Object Name", "Object Title", TableObj{}}
-
-	values := []string{"null", obj.Name, obj.Value}
+	obj := TestObject{Name: "Object Name", Value: "Object Title"}
 
 	defer db.Close()
-
-	id, err := tbl.Create(values)
+	fmt.Println("about to create")
+	id, err := tbl.Create(obj)
 
 	if err != nil {
 		t.Error("error creating table object... " + err.Error())
