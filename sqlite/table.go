@@ -64,7 +64,7 @@ func (tbl *Table) List() ([]interface{}, error) {
 
 func (tbl *Table) Create(obj interface{}) (int64, error) {
 	elem := reflect.ValueOf(obj)
-	length := elem.NumField() - 2
+	length := elem.NumField() - 1
 
 	keys := make([]string, length)
 	vals := make([]string, length)

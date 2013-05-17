@@ -27,7 +27,8 @@ func Test_CreateTable(t *testing.T) {
 	db := DB{":memory:", nil}
 	db.Init()
 
-	_, err := db.CreateTable("TestTable", TestObject{})
+	var obj TestObject
+	_, err := db.CreateTable("TestTable", obj)
 
 	if err != nil {
 		t.Error("error creating table... " + err.Error())
@@ -37,13 +38,41 @@ func Test_CreateTable(t *testing.T) {
 
 }
 
+func Test_CreateThenGetTable(t *testing.T) {
+	db := DB{":memory:", nil}
+	db.Init()
+
+	var obj TestObject
+	_, err := db.CreateTable("TestTable", obj)
+
+	if err != nil {
+		t.Error("error creating table... " + err.Error())
+	} else {
+		t.Log("table was created")
+	}
+
+	tbl := db.Table("TestTable", TestObject{})
+
+	if err != nil {
+		t.Error("error getting table", err.Error())
+		return
+	}
+
+	t.Log("got table", tbl.Name)
+	fmt.Println("Got table " + tbl.Name)
+
+}
+
 func Test_TableCreateGetUpdate(t *testing.T) {
 	db := DB{":memory:", nil}
 	db.Init()
 
-	tbl, err := db.CreateTable("TestTable", TestObject{})
+	var obj TestObject
+	_, err := db.CreateTable("TestTable", obj)
 
-	obj := TestObject{Name: "Object Name", Value: "Object Title"}
+	tbl := db.Table("TestTable", obj)
+
+	obj = TestObject{Name: "Object Name", Value: "Object Title"}
 
 	defer db.Close()
 	fmt.Println("about to create")

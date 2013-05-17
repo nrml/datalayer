@@ -35,11 +35,29 @@ func (db *DB) Close() {
 	db.db.Close()
 }
 
+func (db *DB) Table(name string, tblType interface{}) Table {
+	//stmt := fmt.Sprintf("PRAGMA table_info('%s')", name)
+	//res, err := db.db.Exec(stmt)
+
+	elem := reflect.TypeOf(tblType)
+	length := elem.NumField()
+	fields := make([]Field, length)
+	for i := 0; i < length; i++ {
+		f := elem.Field(i)
+		tag := f.Tag.Get("sql")
+		if tag != "" {
+			parts := strings.Split(tag, " ")
+			fields[i] = Field{parts[0], strings.Join(parts[1:], " ")}
+		}
+	}
+
+	return Table{name, reflect.TypeOf(tblType), fields, db}
+}
+
 func (db *DB) CreateTable(name string, tblType interface{}) (Table, error) {
 	elem := reflect.TypeOf(tblType)
 
-	//HACK: don't count last prop reflected on as it is tableObj
-	length := elem.NumField() - 1
+	length := elem.NumField()
 
 	defs := make([]string, length)
 	fields := make([]Field, length)
