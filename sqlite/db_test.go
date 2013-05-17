@@ -15,6 +15,7 @@ type TestObject struct {
 
 func Test_InitDB(t *testing.T) {
 	db := DB{":memory:", nil}
+	//db := DB{"testing.localhost", nil}
 	db.Init()
 
 	if db.Namespace != ":memory:" {
@@ -24,7 +25,8 @@ func Test_InitDB(t *testing.T) {
 	}
 }
 func Test_CreateTable(t *testing.T) {
-	db := DB{":memory:", nil}
+	//db := DB{":memory:", nil}
+	db := DB{"localhost.test", nil}
 	db.Init()
 
 	var obj TestObject
@@ -32,8 +34,10 @@ func Test_CreateTable(t *testing.T) {
 
 	if err != nil {
 		t.Error("error creating table... " + err.Error())
+		return
 	} else {
 		t.Log("table was created")
+		fmt.Println("table was created")
 	}
 
 }
@@ -136,6 +140,34 @@ func Test_TableCreateGetUpdate(t *testing.T) {
 		fmt.Printf("found %v objects in list\n", len(list))
 		tobj1 := list[0].(TestObject)
 		fmt.Printf("found object1 in list:  %v\n", tobj1)
+
+	}
+
+	search, err := tbl.Search("value='Object Title'")
+
+	if err != nil {
+		t.Error("error search objects after update... " + err.Error())
+		return
+	} else {
+		fmt.Printf("found %v objects in search\n", len(search))
+		if len(search) > 0 {
+			tobj1 := search[0].(TestObject)
+			fmt.Printf("found object1 in search:  %v\n", tobj1)
+		}
+
+	}
+
+	search, err = tbl.Search("value='Bad Object Title'")
+
+	if err != nil {
+		t.Error("error search objects after update... " + err.Error())
+		return
+	} else {
+		fmt.Printf("found %v objects in bad search\n", len(search))
+		if len(search) > 0 {
+			tobj1 := search[0].(TestObject)
+			fmt.Printf("found object1 in bad search:  %v\n", tobj1)
+		}
 
 	}
 

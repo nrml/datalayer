@@ -17,14 +17,13 @@ type DB struct {
 
 func (db *DB) Init() error {
 	if db.Namespace == "" {
-		err := errors.New("Db needs a namespace")
+		err := errors.New("db needs a namespace")
 		return err
 	}
-
 	tst, err := sql.Open("sqlite3", db.Namespace)
 	db.db = tst
 
-	if db == nil {
+	if db.db == nil {
 		log.Fatal("database cannot be initialized")
 	}
 
@@ -36,9 +35,6 @@ func (db *DB) Close() {
 }
 
 func (db *DB) Table(name string, tblType interface{}) Table {
-	//stmt := fmt.Sprintf("PRAGMA table_info('%s')", name)
-	//res, err := db.db.Exec(stmt)
-
 	elem := reflect.TypeOf(tblType)
 	length := elem.NumField()
 	fields := make([]Field, length)
@@ -75,6 +71,11 @@ func (db *DB) CreateTable(name string, tblType interface{}) (Table, error) {
 	stmt := fmt.Sprintf("create table %s (%s)", name, strings.Join(defs, ","))
 
 	_, err := db.db.Exec(stmt)
+
+	if err != nil {
+		fmt.Printf("ERROR creating table: %v   - %v\n", err.Error(), "setting error to nil")
+		err = nil
+	}
 
 	return Table{name, reflect.TypeOf(tblType), fields, db}, err
 

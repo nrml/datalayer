@@ -24,7 +24,21 @@ func (t *Table) fieldNames() []string {
 	}
 	return keys
 }
+func (tbl *Table) Search(search string) ([]interface{}, error) {
+	statement := "select " + strings.Join(tbl.fieldNames(), ",") + " from " + tbl.Name + " where " + search
 
+	stmt, err := tbl.DB.db.Prepare(statement)
+
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := stmt.Query()
+
+	filled := tbl.fill(rows)
+
+	return filled, err
+}
 func (tbl *Table) Get(id int64) (interface{}, error) {
 	statement := "select " + strings.Join(tbl.fieldNames(), ",") + " from " + tbl.Name + " where id = ?"
 
