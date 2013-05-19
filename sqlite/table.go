@@ -64,12 +64,16 @@ func (tbl *Table) Get(id int64) (interface{}, error) {
 
 func (tbl *Table) List() ([]interface{}, error) {
 	statement := "select " + strings.Join(tbl.fieldNames(), ",") + " from " + tbl.Name
+	
+	//fmt.Println("sql: " + statement)
 
 	stmt, err := tbl.DB.db.Prepare(statement)
 
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("sql: " + statement)
 
 	rows, err := stmt.Query()
 
