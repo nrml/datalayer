@@ -20,7 +20,7 @@ func (db *DB) Init() error {
 		err := errors.New("db needs a namespace")
 		return err
 	}
-	tst, err := sql.Open("sqlite3", db.Namespace)
+	tst, err := sql.Open("sqlite3", db.Namespace+".db")
 	db.db = tst
 
 	if db.db == nil {
@@ -73,7 +73,7 @@ func (db *DB) CreateTable(name string, tblType interface{}) (Table, error) {
 	_, err := db.db.Exec(stmt)
 
 	if err != nil {
-		fmt.Printf("ERROR creating table: %v   - %v\n", err.Error(), "setting error to nil")
+		log.Printf("ERROR creating table: %v   - %v\n", err.Error(), "setting error to nil")
 		err = nil
 	}
 

@@ -26,10 +26,8 @@ func (t *Table) fieldNames() []string {
 }
 func (tbl *Table) Search(search string) ([]interface{}, error) {
 	statement := "select " + strings.Join(tbl.fieldNames(), ",") + " from " + tbl.Name + " where " + search
-	
-	stmt, err := tbl.DB.db.Prepare(statement)
 
-	//fmt.Println(statement)
+	stmt, err := tbl.DB.db.Prepare(statement)
 
 	if err != nil {
 		return nil, err
@@ -64,16 +62,12 @@ func (tbl *Table) Get(id int64) (interface{}, error) {
 
 func (tbl *Table) List() ([]interface{}, error) {
 	statement := "select " + strings.Join(tbl.fieldNames(), ",") + " from " + tbl.Name
-	
-	//fmt.Println("sql: " + statement)
 
 	stmt, err := tbl.DB.db.Prepare(statement)
 
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println("sql: " + statement)
 
 	rows, err := stmt.Query()
 
@@ -95,12 +89,12 @@ func (tbl *Table) Create(obj interface{}) (int64, error) {
 		keys[i-1] = f.Name
 		vals[i-1] = "?"
 		face := elem.Field(i).Interface()
-		fmt.Printf("adding field value: %v\n", face)
+
 		values[i-1] = face
 	}
 
 	statement := "insert into " + tbl.Name + "(" + strings.Join(keys, ",") + ") values(" + strings.Join(vals, ",") + ")"
-	fmt.Println(statement)
+
 	tx, err := tbl.DB.db.Begin()
 
 	if err != nil {
@@ -207,10 +201,7 @@ func (tbl *Table) fill(rows *sql.Rows) []interface{} {
 			}
 
 		}
-		fmt.Println("checking grow")
 		if idx > len(results)-1 {
-			//fmt.Printf("growing results with: %v\n", elem.Interface())
-			fmt.Println("growing")
 			results = tbl.growResult(results, elem.Interface())
 		}
 		idx++
