@@ -24,7 +24,7 @@ func (db *DB) Init() error {
 	db.db = tst
 
 	if db.db == nil {
-		log.Fatal("database cannot be initialized")
+		err = errors.New("database cannot be initialized")
 	}
 
 	return err
@@ -73,8 +73,12 @@ func (db *DB) CreateTable(name string, tblType interface{}) (Table, error) {
 	_, err := db.db.Exec(stmt)
 
 	if err != nil {
-		log.Printf("ERROR creating table: %v   - %v\n", err.Error(), "setting error to nil")
-		err = nil
+		errst := err.Error()
+		match := fmt.Sprintf("table %s already exists", name)
+		if errst == match {
+			log.Printf("ok that table already exists")
+			err = nil
+		}
 	}
 
 	return Table{name, reflect.TypeOf(tblType), fields, db}, err
