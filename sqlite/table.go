@@ -3,6 +3,7 @@ package sqlite
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -197,7 +198,7 @@ func (tbl *Table) fill(rows *sql.Rows) []interface{} {
 				//TODO () handle nulls
 			} else {
 				f := elem.Field(i)
-				fmt.Printf("trying to set: %v with %v\n", tbl.Type.Field(i).Name, col)
+				log.Printf("trying to set: %v with %v\n", tbl.Type.Field(i).Name, col)
 				tbl.setVal(&f, col)
 			}
 
