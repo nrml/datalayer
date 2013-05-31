@@ -152,7 +152,7 @@ func (tbl *Table) Update(id int64, obj interface{}) error {
 func (tbl *Table) Delete(id int64) error {
 	tx, err := tbl.DB.db.Begin()
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return err
 	}
 	stmt, err := tx.Prepare("delete from " + tbl.Name + " where id=?")
