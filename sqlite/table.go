@@ -63,6 +63,7 @@ func (tbl *Table) Get(id int64) (interface{}, error) {
 }
 
 func (tbl *Table) List() ([]interface{}, error) {
+	log.Println("datalayer: getting list")
 	statement := "select " + strings.Join(tbl.fieldNames(), ",") + " from " + tbl.Name
 
 	stmt, err := tbl.DB.db.Prepare(statement)
@@ -74,7 +75,7 @@ func (tbl *Table) List() ([]interface{}, error) {
 	rows, err := stmt.Query()
 
 	filled := tbl.fill(rows)
-
+	log.Println("datalayer: returning list")
 	return filled, err
 }
 
@@ -225,7 +226,9 @@ func (tbl *Table) growResult(results []interface{}, obj interface{}) []interface
 }
 func (tbl *Table) setVal(field *reflect.Value, val interface{}) {
 	str, ok := val.(string)
+	log.Println("trying to set")
 	if ok {
+		log.Println("setting string")
 		field.SetString(str)
 		return
 	}
