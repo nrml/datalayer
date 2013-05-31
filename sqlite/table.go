@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Table struct {
@@ -196,7 +197,7 @@ func (tbl *Table) fill(rows *sql.Rows) []interface{} {
 				//TODO () handle nulls
 			} else {
 				f := elem.Field(i)
-				//fmt.Printf("trying to set: %v with %v\n", tbl.Type.Field(i).Name, col)
+				fmt.Printf("trying to set: %v with %v\n", tbl.Type.Field(i).Name, col)
 				tbl.setVal(&f, col)
 			}
 
@@ -245,6 +246,11 @@ func (tbl *Table) setVal(field *reflect.Value, val interface{}) {
 	f, ok := val.(float64)
 	if ok {
 		field.SetFloat(f)
+		return
+	}
+	t, ok := val.(time.Time)
+	if ok {
+		field.Set(reflect.ValueOf(t))
 		return
 	}
 
