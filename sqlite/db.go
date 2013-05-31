@@ -8,6 +8,7 @@ import (
 	"log"
 	"reflect"
 	"strings"
+	"sync"
 )
 
 type DB struct {
@@ -15,11 +16,17 @@ type DB struct {
 	db        *sql.DB
 }
 
+var dbLock sync.Mutex
+
 func (db *DB) Init() error {
 	if db.Namespace == "" {
 		err := errors.New("db needs a namespace")
 		return err
 	}
+
+	// dbLock.Lock()
+	// defer dbLock.Unlock()
+
 	tst, err := sql.Open("sqlite3", db.Namespace+".db")
 	db.db = tst
 
@@ -78,6 +85,9 @@ func (db *DB) CreateTable(name string, tblType interface{}) (Table, error) {
 		if errst == match {
 			log.Printf("ok that table already exists")
 			err = nil
+		} else {
+			log.Printf("datalayer-go: %s", db.Namespace)
+			log.Println("datalayer-go: " + err.Error())
 		}
 	}
 
